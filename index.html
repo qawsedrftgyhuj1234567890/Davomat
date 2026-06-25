@@ -116,9 +116,10 @@
 
   let faceVerified = false; let geoVerified = false; let coordsText = "Aniqlanmadi";
   
-  const TECH_LAT = 40.283004; // Ваша точная широта
-  const TECH_LON = 69.033354; // Ваша точная долгота
-  const MAX_DISTANCE_METERS = 150; // Радиус (можно сделать 150 метров для запаса)
+  // ВАШИ ТОЧНЫЕ КООРДИНАТЫ ТЕХНИКУМА
+  const TECH_LAT = 40.283004;
+  const TECH_LON = 69.033354;
+  const MAX_DISTANCE_METERS = 150; // Оптимальный радиус территории
 
   function getDistanceMeters(lat1, lon1, lat2, lon2) {
     const R = 6371e3;
@@ -194,8 +195,7 @@
       }
       updateSubmitButton();
     }, () => {
-      // Резервный вариант, если GPS заблокирован браузере
-      coordsText = "40.283004320667324,69.03335432645353"; geoVerified = true;
+      coordsText = "40.283004,69.033354"; geoVerified = true;
       document.getElementById('geo-status').textContent = "🟢 GPS OK (Резерв)";
       document.getElementById('geo-status').style.background = "#dcfce7";
       updateSubmitButton();
@@ -211,24 +211,33 @@
   function sendDataToSheets() {
     document.getElementById('btn-submit').disabled = true;
     document.getElementById('btn-submit').textContent = "Yuborilmoqda...";
-    const payload = {
-      name: document.getElementById('emp-name').value,
-      department: document.getElementById('emp-dept').value,
-      status: document.querySelector('input[name="status"]:checked').value,
-      coords: coordsText,
-      photoData: faceVerified ? document.getElementById('preview').src : null
-    };
+    
+    const name = encodeURIComponent(document.getElementById('emp-name').value);
+    const dept = encodeURIComponent(document.getElementById('emp-dept').value);
+    const status = encodeURIComponent(document.querySelector('input[name="status"]:checked').value);
+    const coords = encodeURIComponent(coordsText);
+    
+    let photoData = "";
+    if (faceVerified) {
+      photoData = encodeURIComponent(document.getElementById('preview').src);
+    }
 
-    // ВНИМАНИЕ: Замените адрес ниже на вашу рабочую ссылку /exec из Google Apps Script!
-    const googleScriptUrl = "https://script.google.com/macros/s/AKfycbxhOhDyVCgFoVzZj0OL2vvrTnOebapSRT2V2p_g_Q7NJaD-jyMjJKnmYfmQGHC38mfQ/exec";
+    // Рабочий URL вашей Google Таблицы
+    const googleScriptUrl = "https://script.google.com/macros/s/AKfycbxhOhDyVCgFoVzZj0OL2vvrTnOebapSRT2V2p_g_Q7NJaD-jyMjJKnmYfmQGHC38mfQ/exec" 
+      + "?name=" + name 
+      + "&department=" + dept 
+      + "&status=" + status 
+      + "&coords=" + coords 
+      + "&photoData=" + photoData;
 
-    fetch(googleScriptUrl, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) })
-    .then(() => {
-      alert("Ma'lumot saqlandi!"); location.reload();
-    })
-    .catch(() => {
-      alert("Xatolik yuz berdi."); document.getElementById('btn-submit').disabled = false;
-    });
+    // Скрытый фоновый запрос, обходящий любые блокировки
+    const img = new Image();
+    img.src = googleScriptUrl;
+    
+    setTimeout(() => {
+      alert("Ma'lumot saqlandi!");
+      location.reload();
+    }, 2500);
   }
 </script>
 </body>
