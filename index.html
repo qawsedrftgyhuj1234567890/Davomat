@@ -116,9 +116,9 @@
 
   let faceVerified = false; let geoVerified = false; let coordsText = "Aniqlanmadi";
   
-  const TECH_LAT = 40.4354;
-  const TECH_LON = 68.4682;
-  const MAX_DISTANCE_METERS = 100;
+  const TECH_LAT = 40.283004; // Ваша точная широта
+  const TECH_LON = 69.033354; // Ваша точная долгота
+  const MAX_DISTANCE_METERS = 150; // Радиус (можно сделать 150 метров для запаса)
 
   function getDistanceMeters(lat1, lon1, lat2, lon2) {
     const R = 6371e3;
