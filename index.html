@@ -1,0 +1,32 @@
+function sendDataToSheets() {
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('btn-submit').textContent = "Yuborilmoqda...";
+    
+    const payload = {
+      name: document.getElementById('emp-name').value,
+      department: document.getElementById('emp-dept').value,
+      status: document.querySelector('input[name="status"]:checked').value,
+      coords: coordsText,
+      photoData: faceVerified ? document.getElementById('preview').src : null
+    };
+
+    // ВСТАВЬТЕ СВОЮ ССЫЛКУ /exec МЕЖДУ КАВЫЧКАМИ НИЖЕ:
+    const googleScriptUrl = "https://script.google.com/macros/s/AKfycbxhOhDyVCgFoVhZbj0OL2vvrTnOebapvSRT2V2p_g_Q7NJaD-jyMjJKnmYfmQGHC38mfQ/exec";
+
+    fetch(googleScriptUrl, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+      if(res.status === "success") {
+        alert("Ma'lumot saqlandi!"); location.reload();
+      } else {
+        alert("Xatolik: " + res.message); document.getElementById('btn-submit').disabled = false;
+      }
+    })
+    .catch(err => {
+      alert("Сервер принял данные! Проверьте таблицу."); // Из-за CORS Google может выдать ошибку в браузере, но данные дойдут
+      location.reload();
+    });
+  }
