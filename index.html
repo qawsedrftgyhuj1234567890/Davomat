@@ -63,8 +63,8 @@
   <div class="form-group">
     <label>Harakat turi</label>
     <div class="radio-group">
-      <label class="radio-label"><input type="radio" name="status" value="Keldi" checked> Keldi</label>
-      <label class="radio-label"><input type="radio" name="status" value="Ketdi"> Ketdi</label>
+      <label class="radio-label"><input type="radio" name="status" value="🟢 Keldi" checked> Keldi</label>
+      <label class="radio-label"><input type="radio" name="status" value="🔴 Ketdi"> Ketdi</label>
     </div>
   </div>
 
@@ -85,7 +85,7 @@
     <div class="status-badge" id="geo-status">Kutilmoqda...</div>
   </div>
 
-  <button type="button" class="btn-green" id="btn-submit" onclick="sendDataToSheets()" disabled>Tasdiqlash va Saqlash</button>
+  <button type="button" class="btn-green" id="btn-submit" onclick="sendDataToTelegram()" disabled>Tasdiqlash va Saqlash</button>
 </div>
 
 <script>
@@ -114,12 +114,11 @@
     "Tex Xodimlar": ["Aliberdiyev.Sh", "Alimatov.R", "Boboyev.B", "Boymatova.Z", "Ermatova.N", "Haydarov.Sh", "Jabborov.B", "Jumaboyev.A", "Jo`rayeva.M", "Komilova.A", "Mirzaqobilova.N", "Mubinova.G", "Ma`mirboyeva.N", "Nurmatov.G`", "Nurmatova.M", "Kattabekova.Q", "Sharipova.G", "Zohidova.N"]
   };
 
-  let faceVerified = false; let geoVerified = false; let coordsText = "Aniqlanmadi";
+  let faceVerified = false; let geoVerified = false; let coordsText = "Aniqlanmadi"; let rawFileBlob = null;
   
-  // ВАШИ ТОЧНЫЕ КООРДИНАТЫ ТЕХНИКУМА
   const TECH_LAT = 40.283004;
   const TECH_LON = 69.033354;
-  const MAX_DISTANCE_METERS = 150; // Оптимальный радиус территории
+  const MAX_DISTANCE_METERS = 150;
 
   function getDistanceMeters(lat1, lon1, lat2, lon2) {
     const R = 6371e3;
@@ -161,11 +160,15 @@
         img.onload = function() {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          canvas.width = 600; canvas.height = img.height * (600 / img.width);
+          canvas.width = 500; canvas.height = img.height * (500 / img.width);
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          document.getElementById('preview').src = canvas.toDataURL('image/jpeg', 0.5);
+          
+          document.getElementById('preview').src = canvas.toDataURL('image/jpeg', 0.6);
           document.getElementById('preview').style.display = 'block';
           document.getElementById('photo-placeholder').style.display = 'none';
+          
+          canvas.toBlob(blob => { rawFileBlob = blob; }, 'image/jpeg', 0.6);
+          
           faceVerified = true;
           document.getElementById('face-status').textContent = "🟢 Rasm yuklandi!";
           document.getElementById('face-status').style.background = "#dcfce7";
@@ -208,36 +211,54 @@
     document.getElementById('btn-submit').disabled = !(name && dept && faceVerified && geoVerified);
   }
 
-  function sendDataToSheets() {
+  function sendDataToTelegram() {
     document.getElementById('btn-submit').disabled = true;
     document.getElementById('btn-submit').textContent = "Yuborilmoqda...";
+
+    // НАСТРОЙКИ ВАШЕГО ТЕЛЕГРАМ-БОТА
+    const BOT_TOKEN = "8683724093:AAGM5CF0sjJn21wAp2mbzJPM4GUuwx0RrRE";
+    const CHAT_ID = "-1004469348647";
+
+    const name = document.getElementById('emp-name').value;
+    const dept = document.getElementById('emp-dept').value;
+    const status = document.querySelector('input[name="status"]:checked').value;
     
-    const name = encodeURIComponent(document.getElementById('emp-name').value);
-    const dept = encodeURIComponent(document.getElementById('emp-dept').value);
-    const status = encodeURIComponent(document.querySelector('input[name="status"]:checked').value);
-    const coords = encodeURIComponent(coordsText);
-    
-    let photoData = "";
-    if (faceVerified) {
-      photoData = encodeURIComponent(document.getElementById('preview').src);
+    const messageText = `📊 *YANGI DAVOMAT HISOBOTI*\n\n` +
+                        `👤 *Xodim:* ${name}\n` +
+                        `📂 *Bo'lim:* ${dept}\n` +
+                        `🔄 *Harakat:* ${status}\n` +
+                        `📍 *Lokatsiya:* [Google Maps](https://maps.google.com/?q=${coordsText})\n` +
+                        `🕒 *Vaqt:* ${new Date().toLocaleString('uz-UZ', {timeZone: 'Asia/Tashkent'})}`;
+
+    const formData = new FormData();
+    formData.append("chat_id", CHAT_ID);
+    formData.append("caption", messageText);
+    formData.append("parse_mode", "Markdown");
+
+    let apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+
+    if (rawFileBlob) {
+      formData.append("photo", rawFileBlob, "face.jpg");
+      apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
+    } else {
+      formData.append("text", messageText);
     }
 
-    // Рабочий URL вашей Google Таблицы
-    const googleScriptUrl = "https://script.google.com/macros/s/AKfycbw62TTcNhiRHxEvGi0vnh1VAB_vUmS5JdRqEz0BjdoGavz0Hln623xBkDAa7XZiz99Q/exec" 
-      + "?name=" + name 
-      + "&department=" + dept 
-      + "&status=" + status 
-      + "&coords=" + coords 
-      + "&photoData=" + photoData;
-
-    // Скрытый фоновый запрос, обходящий любые блокировки
-    const img = new Image();
-    img.src = googleScriptUrl;
-    
-    setTimeout(() => {
-      alert("Ma'lumot saqlandi!");
-      location.reload();
-    }, 2500);
+    fetch(apiUrl, { method: "POST", body: formData })
+    .then(res => {
+      if (res.ok) {
+        alert("Ma'lumot Telegram botga muvaffaqiyatli yuborildi!");
+        location.reload();
+      } else {
+        alert("Xatolik yuz berdi. Ботни группага администратор қилганингизни текширинг.");
+        document.getElementById('btn-submit').disabled = false;
+        document.getElementById('btn-submit').textContent = "Tasdiqlash va Saqlash";
+      }
+    })
+    .catch(() => {
+      alert("Tarmoq xatosi. Qayta urinib ko'ring.");
+      document.getElementById('btn-submit').disabled = false;
+    });
   }
 </script>
 </body>
