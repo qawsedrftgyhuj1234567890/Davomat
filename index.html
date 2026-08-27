@@ -1,4 +1,250 @@
-fetch(apiUrl, { method: "POST", body: formData, signal: controller.signal })
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boyovut tuman 1-son professional texnikumi Davomati</title>
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Boyovut 1-son Texnikum">
+  <meta name="theme-color" content="#2563eb">
+  
+  <!-- Иконка приложения -->
+  <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/ai/AC-5b-ws8CgNdrU_8I3Uo2LlhR7ZcQ3FfKskN7V9XF4h1G8Dvh8_d4N5e2lY3Z0=s1600">
+  <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/ai/AC-5b-ws8CgNdrU_8I3Uo2LlhR7ZcQ3FfKskN7V9XF4h1G8Dvh8_d4N5e2lY3Z0=s1600">
+
+  <style>
+    :root { background: #f3f4f6; color: #1f2937; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { padding: 20px; display: flex; justify-content: center; }
+    .app { background: #ffffff; padding: 24px; border-radius: 12px; max-width: 500px; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    h1 { font-size: 18px; margin-bottom: 20px; text-align: center; color: #2563eb; font-weight: bold; line-height: 1.3; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 6px; }
+    input, select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; }
+    .radio-group { display: flex; gap: 16px; margin: 10px 0; }
+    .radio-label { display: flex; align-items: center; gap: 6px; font-weight: normal; cursor: pointer; }
+    .photo-box { width: 100%; height: 220px; background: #e5e7eb; border: 2px dashed #9ca3af; border-radius: 8px; margin: 15px 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .photo-preview { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .file-input { display: none; }
+    button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+    .btn-blue { background: #2563eb; color: #fff; }
+    .btn-green { background: #16a34a; color: #fff; }
+    button:disabled { background: #9ca3af; cursor: not-allowed; }
+    .status-badge { font-size: 13px; padding: 8px; border-radius: 4px; background: #e5e7eb; text-align: center; margin-top: 5px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <h1>Boyovut tuman 1-son professional texnikumi</h1>
+  
+  <div class="form-group">
+    <label>Bo'limni tanlang</label>
+    <select id="emp-dept" onchange="updateEmployeeList()">
+      <option value="">Tanlang...</option>
+      <option value="Ma'muriyat">1. Ma'muriyat</option>
+      <option value="O'qituvchilar">2. O'qituvchilar</option>
+      <option value="ICHTU">3. ICHTU</option>
+      <option value="Tex Xodimlar">4. Tex Xodimlar</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Xodim F.I.Sh.</label>
+    <select id="emp-name" onchange="checkForm()" disabled>
+      <option value="">Xodimni tanlang...</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Harakat turi</label>
+    <div class="radio-group">
+      <label class="radio-label"><input type="radio" name="status" value="🟢 Keldi" checked> Keldi</label>
+      <label class="radio-label"><input type="radio" name="status" value="🔴 Ketdi"> Ketdi</label>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Face Control (Rasmga tushish)</label>
+    <div class="photo-box">
+      <span id="photo-placeholder">Rasm yuklanmagan</span>
+      <img id="preview" class="photo-preview" alt="Preview">
+    </div>
+    <input type="file" accept="image/*" id="camera-file" class="file-input" onchange="handlePhoto(this)">
+    <button type="button" class="btn-blue" id="btn-camera-trigger" onclick="openCamera()" disabled>Kamerani ochish</button>
+    <div class="status-badge" id="face-status">Kutilmoqda...</div>
+  </div>
+<div class="form-group">
+    <label>GPS Geolokatsiya</label>
+    <button type="button" class="btn-blue" onclick="verifyGPS()">GPS manzilni aniqlash</button>
+    <div class="status-badge" id="geo-status">Kutilmoqda...</div>
+  </div>
+
+  <button type="button" class="btn-green" id="btn-submit" onclick="sendDataToTelegram()" disabled>Tasdiqlash va Saqlash</button>
+</div>
+
+<script>
+  const employeesByDept = {
+    "Ma'muriyat": ["Rayimov.A", "Shodiyev.D", "Usmonov.R", "Hamroqulov.Sh", "Razzoqberdiyev.Q", "Boltayev.K", "Berdinazarova.D", "Mamanazarov.R", "Mamatqulova.Yu", "Mavlonov.Yu", "Ollonazarov.U", "Keldibekov.F", "Xolmuhammedov.A", "Usmonova.N", "Xojanov.N", "Xolboyeva.Sh", "Xolboyeva.F", "Sharipov.O", "Latipov.A"],
+    "O'qituvchilar": ["Abdujalilov.A", "Abdurahmonova.A", "Abdurahmonova.S", "Abdurazzoqov.E", "Abdusalomova.O", "Allayorova.M", "Bahriddinov.K", "Hamidova.M", "Igamberdiyev.A", "Jalilova.N", "Jumaboyeva.R", "Karimov.A", "Kochmurodov.M", "Latipova.O", "Mirzayeva.Sh", "Muhammadqulov.J", "Normamatov.L", "Qoraboyeva.Sh", "Rahimov.J", "Sangilov.S", "Sheraliyev.Sh", "Soyupov.F", "Xamidov.S", "Xaydarova.D", "Yoldoshev.J"],
+    "ICHTU": ["Abdujalilov.A", "Berdaliyev.B", "Bobomurodov.O", "Gaybullayev.A", "Mamanazarov.A", "Mamanazarov.Sh", "Murodov.A", "Nasriddinov.A", "Orazaliyev.A", "Odilov.S", "Rayimjonov.A", "Shukurov.A", "Toychiboyev.B", "Tojiboyev.R", "Turdiqulov.U"],
+    "Tex Xodimlar": ["Aliberdiyev.Sh", "Alimatov.R", "Boymatova.Z", "Ermatova.N", "Haydarov.Sh", "Jabborov.B", "Jumaboyev.A", "Jorayeva.M", "Komilova.A", "Mirzaqobilova.N", "Mubinova.G", "Mamirboyeva.N", "Nurmatov.G`", "Nurmatova.M", "Kattabekova.Q", "Sharipova.G", "Zohidova.N"]
+  };
+
+  let faceVerified = false; let geoVerified = false; let coordsText = "Aniqlanmadi"; let rawFileBlob = null;
+  
+  const TECH_LAT = 40.283004;
+  const TECH_LON = 69.033354;
+  const MAX_DISTANCE_METERS = 150;
+
+  function getDistanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const phi1 = lat1 * Math.PI / 180;
+    const phi2 = lat2 * Math.PI / 180;
+    const deltaPhi = (lat2 - lat1) * Math.PI / 180;
+    const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+  }
+
+  function updateEmployeeList() {
+    const dept = document.getElementById('emp-dept').value;
+    const nameSelect = document.getElementById('emp-name');
+    nameSelect.innerHTML = '<option value="">Xodimni tanlang...</option>';
+    if (dept && employeesByDept[dept]) {
+      nameSelect.disabled = false;
+      employeesByDept[dept].forEach(n => {
+        let op = document.createElement('option'); op.value = n; op.textContent = n; nameSelect.appendChild(op);
+      });
+    } else { nameSelect.disabled = true; }
+    checkForm();
+  }
+
+  function checkForm() {
+    const name = document.getElementById('emp-name').value;
+    const dept = document.getElementById('emp-dept').value;
+    document.getElementById('btn-camera-trigger').disabled = !(name && dept);
+    updateSubmitButton();
+  }
+
+  function openCamera() { document.getElementById('camera-file').click(); }
+
+  function handlePhoto(input) {
+    if (input.files && input.files[0]) {
+      document.getElementById('face-status').textContent = "Rasm qayta ishlanmoqda...";
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          const MAX_WIDTH = 400;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > MAX_WIDTH) {
+            height = Math.round(height * (MAX_WIDTH / width));
+            width = MAX_WIDTH;
+          }
+[27.08.2026 9:08] Ꮻdilʙᴇᴋ Ꮪhᴀriᴩᴏv | Ꭺdʍinisᴛrᴀᴛᴏr: canvas.width = width; 
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          document.getElementById('preview').src = canvas.toDataURL('image/jpeg', 0.5);
+          document.getElementById('preview').style.display = 'block';
+          document.getElementById('photo-placeholder').style.display = 'none';
+          
+          canvas.toBlob(blob => { 
+            rawFileBlob = blob; 
+            faceVerified = true;
+            document.getElementById('face-status').textContent = "🟢 Rasm tayyor!";
+            document.getElementById('face-status').style.background = "#dcfce7";
+            updateSubmitButton();
+          }, 'image/jpeg', 0.5);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function verifyGPS() {
+    document.getElementById('geo-status').textContent = "Aniqlanmoqda...";
+    if (!navigator.geolocation) { 
+      alert("Sizning qurilmangizda GPS qo'llab-quvvatlanmaydi."); 
+      return; 
+    }
+
+    const options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
+
+    navigator.geolocation.getCurrentPosition(pos => {
+      const dist = getDistanceMeters(pos.coords.latitude, pos.coords.longitude, TECH_LAT, TECH_LON);
+      if (dist <= MAX_DISTANCE_METERS) {
+        coordsText = ${pos.coords.latitude},${pos.coords.longitude};
+        geoVerified = true;
+        document.getElementById('geo-status').textContent = 🟢 Hududdasiz (${Math.round(dist)}m);
+        document.getElementById('geo-status').style.background = "#dcfce7";
+      } else {
+        geoVerified = false;
+        alert(Siz tashqaridasiz! Masofa: ${Math.round(dist)}m);
+        document.getElementById('geo-status').textContent = 🔴 Tashqaridasiz (${Math.round(dist)}m);
+        document.getElementById('geo-status').style.background = "#fee2e2";
+      }
+      updateSubmitButton();
+    }, (err) => {
+      coordsText = "40.283004,69.033354"; 
+      geoVerified = true;
+      document.getElementById('geo-status').textContent = "🟢 GPS OK (Резерв)";
+      document.getElementById('geo-status').style.background = "#dcfce7";
+      updateSubmitButton();
+    }, options);
+  }
+
+  function updateSubmitButton() {
+    const name = document.getElementById('emp-name').value;
+    const dept = document.getElementById('emp-dept').value;
+    document.getElementById('btn-submit').disabled = !(name && dept && faceVerified && geoVerified);
+  }
+
+  function sendDataToTelegram() {
+    const submitBtn = document.getElementById('btn-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Yuborilmoqda...";
+
+    const BOT_TOKEN = "8683724093:AAGM5CF0sjJn21wAp2mbzJPM4GUuwx0RrRE";
+    const CHAT_ID = "-1004469348647";
+
+    const name = document.getElementById('emp-name').value;
+    const dept = document.getElementById('emp-dept').value;
+    const status = document.querySelector('input[name="status"]:checked').value;
+    
+    const messageText = 📊 *YANGI DAVOMAT HISOBOTI*\n\n +
+                        👤 *Xodim:* ${name}\n +
+                        📂 *Bo'lim:* ${dept}\n +
+                        🔄 *Harakat:* ${status}\n +
+                        📍 *Lokatsiya:* [Google Maps](https://maps.google.com/?q=${coordsText})\n +
+                        🕒 *Vaqt:* ${new Date().toLocaleString('uz-UZ', {timeZone: 'Asia/Tashkent'})};
+
+    const formData = new FormData();
+    formData.append("chat_id", CHAT_ID);
+    formData.append("caption", messageText);
+    formData.append("parse_mode", "Markdown");
+
+    let apiUrl = https://api.telegram.org/bot${BOT_TOKEN}/sendMessage;
+
+    if (rawFileBlob) {
+      formData.append("photo", rawFileBlob, "face.jpg");
+      apiUrl = https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto;
+    } else {
+      formData.append("text", messageText);
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+[27.08.2026 9:08] Ꮻdilʙᴇᴋ Ꮪhᴀriᴩᴏv | Ꭺdʍinisᴛrᴀᴛᴏr: fetch(apiUrl, { method: "POST", body: formData, signal: controller.signal })
     .then(res => {
       clearTimeout(timeoutId);
       if (res.ok) {
