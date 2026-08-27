@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="Boyovut 1-son Texnikum">
   <meta name="theme-color" content="#2563eb">
   
-  <!-- Иконка приложения -->
+  <!-- Иконки и логотип приложения -->
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/ai/AC-5b-ws8CgNdrU_8I3Uo2LlhR7ZcQ3FfKskN7V9XF4h1G8Dvh8_d4N5e2lY3Z0=s1600">
   <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/ai/AC-5b-ws8CgNdrU_8I3Uo2LlhR7ZcQ3FfKskN7V9XF4h1G8Dvh8_d4N5e2lY3Z0=s1600">
 
@@ -33,11 +33,14 @@
     .btn-green { background: #16a34a; color: #fff; }
     button:disabled { background: #9ca3af; cursor: not-allowed; }
     .status-badge { font-size: 13px; padding: 8px; border-radius: 4px; background: #e5e7eb; text-align: center; margin-top: 5px; font-weight: bold; }
+    .pwa-btn { background: #ff9800; color: white; display: none; margin-bottom: 15px; }
   </style>
 </head>
 <body>
 
 <div class="app">
+  <button type="button" class="pwa-btn" id="install-pwa-btn" onclick="triggerPWAInstall()">📲 Ilovani telefonga o'rnatish</button>
+
   <h1>Boyovut tuman 1-son professional texnikumi</h1>
   
   <div class="form-group">
@@ -72,11 +75,12 @@
       <span id="photo-placeholder">Rasm yuklanmagan</span>
       <img id="preview" class="photo-preview" alt="Preview">
     </div>
-    <input type="file" accept="image/*" id="camera-file" class="file-input" onchange="handlePhoto(this)">
+    <input type="file" accept="image/*" capture="user" id="camera-file" class="file-input" onchange="handlePhoto(this)">
     <button type="button" class="btn-blue" id="btn-camera-trigger" onclick="openCamera()" disabled>Kamerani ochish</button>
     <div class="status-badge" id="face-status">Kutilmoqda...</div>
   </div>
-<div class="form-group">
+
+  <div class="form-group">
     <label>GPS Geolokatsiya</label>
     <button type="button" class="btn-blue" onclick="verifyGPS()">GPS manzilni aniqlash</button>
     <div class="status-badge" id="geo-status">Kutilmoqda...</div>
@@ -86,11 +90,29 @@
 </div>
 
 <script>
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); deferredPrompt = e;
+    document.getElementById('install-pwa-btn').style.display = 'block';
+  });
+
+  function triggerPWAInstall() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          document.getElementById('install-pwa-btn').style.display = 'none';
+        }
+        deferredPrompt = null;
+      });
+    }
+  }
+
   const employeesByDept = {
-    "Ma'muriyat": ["Rayimov.A", "Shodiyev.D", "Usmonov.R", "Hamroqulov.Sh", "Razzoqberdiyev.Q", "Boltayev.K", "Berdinazarova.D", "Mamanazarov.R", "Mamatqulova.Yu", "Mavlonov.Yu", "Ollonazarov.U", "Keldibekov.F", "Xolmuhammedov.A", "Usmonova.N", "Xojanov.N", "Xolboyeva.Sh", "Xolboyeva.F", "Sharipov.O", "Latipov.A"],
-    "O'qituvchilar": ["Abdujalilov.A", "Abdurahmonova.A", "Abdurahmonova.S", "Abdurazzoqov.E", "Abdusalomova.O", "Allayorova.M", "Bahriddinov.K", "Hamidova.M", "Igamberdiyev.A", "Jalilova.N", "Jumaboyeva.R", "Karimov.A", "Kochmurodov.M", "Latipova.O", "Mirzayeva.Sh", "Muhammadqulov.J", "Normamatov.L", "Qoraboyeva.Sh", "Rahimov.J", "Sangilov.S", "Sheraliyev.Sh", "Soyupov.F", "Xamidov.S", "Xaydarova.D", "Yoldoshev.J"],
-    "ICHTU": ["Abdujalilov.A", "Berdaliyev.B", "Bobomurodov.O", "Gaybullayev.A", "Mamanazarov.A", "Mamanazarov.Sh", "Murodov.A", "Nasriddinov.A", "Orazaliyev.A", "Odilov.S", "Rayimjonov.A", "Shukurov.A", "Toychiboyev.B", "Tojiboyev.R", "Turdiqulov.U"],
-    "Tex Xodimlar": ["Aliberdiyev.Sh", "Alimatov.R", "Boymatova.Z", "Ermatova.N", "Haydarov.Sh", "Jabborov.B", "Jumaboyev.A", "Jorayeva.M", "Komilova.A", "Mirzaqobilova.N", "Mubinova.G", "Mamirboyeva.N", "Nurmatov.G`", "Nurmatova.M", "Kattabekova.Q", "Sharipova.G", "Zohidova.N"]
+    "Ma'muriyat": ["Rayimov.A", "Shodiyev.D", "Usmonov.R", "Hamroqulov.Sh", "Razzoqberdiyev.Q", "Boltayev.K", "Berdinazarova.D", "Mamanazarov.R", "Mamatqulova.Yu", "Mavlonov.Yu", "Ollonazarov.U", "Keldibekov.F", "Xolmuhammedov.A", "Usmonova.N", "Xo`janov.N", "Xolboyeva.Sh", "Xolboyeva.F", "Sharipov.O", "Latipov.A"],
+    "O'qituvchilar": ["Abdujalilov.A", "Abdurahmonova.A", "Abdurahmonova.S", "Abdurazzoqov.E", "Abdusalomova.O", "Allayorova.M", "Bahriddinov.K", "Hamidova.M", "Igamberdiyev.A", "Jalilova.N", "Jumaboyeva.R", "Karimov.A", "Ko`chmurodov.M", "Latipova.O", "Mirzayeva.Sh", "Muhammadqulov.J", "Normamatov.L", "Qoraboyeva.Sh", "Rahimov.J", "Sangilov.S", "Sheraliyev.Sh", "Soyupov.F", "Xamidov.S", "Xaydarova.D", "Yo`ldoshev.J"],
+    "ICHTU": ["Abdujalilov.A", "Berdaliyev.B", "Bobomurodov.O", "G`aybullayev.A", "Mamanazarov.A", "Mamanazarov.Sh", "Murodov.A", "Nasriddinov.A", "O`razaliyev.A", "Odilov.S", "Rayimjonov.A", "Shukurov.A", "To`ychiboyev.B", "Tojiboyev.R", "Turdiqulov.U"],
+    "Tex Xodimlar": ["Aliberdiyev.Sh", "Alimatov.R", "Boymatova.Z", "Ermatova.N", "Haydarov.Sh", "Jabborov.B", "Jumaboyev.A", "Jo`rayeva.M", "Komilova.A", "Mirzaqobilova.N", "Mubinova.G", "Ma`mirboyeva.N", "Nurmatov.G`", "Nurmatova.M", "Kattabekova.Q", "Sharipova.G", "Zohidova.N"]
   };
 
   let faceVerified = false; let geoVerified = false; let coordsText = "Aniqlanmadi"; let rawFileBlob = null;
@@ -110,15 +132,23 @@
   }
 
   function updateEmployeeList() {
-    const dept = document.getElementById('emp-dept').value;
+    const deptSelect = document.getElementById('emp-dept');
+    const dept = deptSelect.value;
     const nameSelect = document.getElementById('emp-name');
+    
     nameSelect.innerHTML = '<option value="">Xodimni tanlang...</option>';
+    
     if (dept && employeesByDept[dept]) {
       nameSelect.disabled = false;
       employeesByDept[dept].forEach(n => {
-        let op = document.createElement('option'); op.value = n; op.textContent = n; nameSelect.appendChild(op);
+        let op = document.createElement('option'); 
+        op.value = n; 
+        op.textContent = n; 
+        nameSelect.appendChild(op);
       });
-    } else { nameSelect.disabled = true; }
+    } else { 
+      nameSelect.disabled = true; 
+    }
     checkForm();
   }
 
@@ -133,40 +163,17 @@
 
   function handlePhoto(input) {
     if (input.files && input.files[0]) {
-      document.getElementById('face-status').textContent = "Rasm qayta ishlanmoqda...";
+      rawFileBlob = input.files[0];
       const reader = new FileReader();
       reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          
-          const MAX_WIDTH = 400;
-          let width = img.width;
-          let height = img.height;
-          
-          if (width > MAX_WIDTH) {
-            height = Math.round(height * (MAX_WIDTH / width));
-            width = MAX_WIDTH;
-          }
-[27.08.2026 9:08] Ꮻdilʙᴇᴋ Ꮪhᴀriᴩᴏv | Ꭺdʍinisᴛrᴀᴛᴏr: canvas.width = width; 
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-          
-          document.getElementById('preview').src = canvas.toDataURL('image/jpeg', 0.5);
-          document.getElementById('preview').style.display = 'block';
-          document.getElementById('photo-placeholder').style.display = 'none';
-          
-          canvas.toBlob(blob => { 
-            rawFileBlob = blob; 
-            faceVerified = true;
-            document.getElementById('face-status').textContent = "🟢 Rasm tayyor!";
-            document.getElementById('face-status').style.background = "#dcfce7";
-            updateSubmitButton();
-          }, 'image/jpeg', 0.5);
-        };
-        img.src = e.target.result;
-      };
+        document.getElementById('preview').src = e.target.result;
+        document.getElementById('preview').style.display = 'block';
+        document.getElementById('photo-placeholder').style.display = 'none';
+        faceVerified = true;
+        document.getElementById('face-status').textContent = "🟢 Rasm yuklandi!";
+        document.getElementById('face-status').style.background = "#dcfce7";
+        updateSubmitButton();
+      }
       reader.readAsDataURL(input.files[0]);
     }
   }
@@ -178,19 +185,17 @@
       return; 
     }
 
-    const options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
-
     navigator.geolocation.getCurrentPosition(pos => {
       const dist = getDistanceMeters(pos.coords.latitude, pos.coords.longitude, TECH_LAT, TECH_LON);
       if (dist <= MAX_DISTANCE_METERS) {
-        coordsText = ${pos.coords.latitude},${pos.coords.longitude};
+        coordsText = `${pos.coords.latitude},${pos.coords.longitude}`;
         geoVerified = true;
-        document.getElementById('geo-status').textContent = 🟢 Hududdasiz (${Math.round(dist)}m);
+        document.getElementById('geo-status').textContent = `🟢 Hududdasiz (${Math.round(dist)}m)`;
         document.getElementById('geo-status').style.background = "#dcfce7";
       } else {
         geoVerified = false;
-        alert(Siz tashqaridasiz! Masofa: ${Math.round(dist)}m);
-        document.getElementById('geo-status').textContent = 🔴 Tashqaridasiz (${Math.round(dist)}m);
+        alert(`Siz tashqaridasiz! Masofa: ${Math.round(dist)}m`);
+        document.getElementById('geo-status').textContent = `🔴 Tashqaridasiz (${Math.round(dist)}m)`;
         document.getElementById('geo-status').style.background = "#fee2e2";
       }
       updateSubmitButton();
@@ -200,7 +205,7 @@
       document.getElementById('geo-status').textContent = "🟢 GPS OK (Резерв)";
       document.getElementById('geo-status').style.background = "#dcfce7";
       updateSubmitButton();
-    }, options);
+    }, { enableHighAccuracy: true, timeout: 10000 });
   }
 
   function updateSubmitButton() {
@@ -221,48 +226,40 @@
     const dept = document.getElementById('emp-dept').value;
     const status = document.querySelector('input[name="status"]:checked').value;
     
-    const messageText = 📊 *YANGI DAVOMAT HISOBOTI*\n\n +
-                        👤 *Xodim:* ${name}\n +
-                        📂 *Bo'lim:* ${dept}\n +
-                        🔄 *Harakat:* ${status}\n +
-                        📍 *Lokatsiya:* [Google Maps](https://maps.google.com/?q=${coordsText})\n +
-                        🕒 *Vaqt:* ${new Date().toLocaleString('uz-UZ', {timeZone: 'Asia/Tashkent'})};
+    const messageText = `📊 *YANGI DAVOMAT HISOBOTI*\n\n` +
+                        `👤 *Xodim:* ${name}\n` +
+                        `📂 *Bo'lim:* ${dept}\n` +
+                        `🔄 *Harakat:* ${status}\n` +
+                        `📍 *Lokatsiya:* [Google Maps](https://maps.google.com/?q=${coordsText})\n` +
+                        `🕒 *Vaqt:* ${new Date().toLocaleString('uz-UZ', {timeZone: 'Asia/Tashkent'})}`;
 
     const formData = new FormData();
     formData.append("chat_id", CHAT_ID);
     formData.append("caption", messageText);
     formData.append("parse_mode", "Markdown");
 
-    let apiUrl = https://api.telegram.org/bot${BOT_TOKEN}/sendMessage;
+    let apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
     if (rawFileBlob) {
       formData.append("photo", rawFileBlob, "face.jpg");
-      apiUrl = https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto;
+      apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
     } else {
       formData.append("text", messageText);
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
-[27.08.2026 9:08] Ꮻdilʙᴇᴋ Ꮪhᴀriᴩᴏv | Ꭺdʍinisᴛrᴀᴛᴏr: fetch(apiUrl, { method: "POST", body: formData, signal: controller.signal })
+    fetch(apiUrl, { method: "POST", body: formData })
     .then(res => {
-      clearTimeout(timeoutId);
       if (res.ok) {
         alert("Ma'lumot Telegram botga muvaffaqiyatli yuborildi!");
         location.reload();
       } else {
-        alert("Xatolik yuz berdi. Internet aloqasini tekshirib qayta urinib ko'ring.");
+        alert("Xatolik yuz berdi. Qayta urinib ko'ring.");
         submitBtn.disabled = false;
         submitBtn.textContent = "Tasdiqlash va Saqlash";
       }
     })
     .catch(err => {
-      clearTimeout(timeoutId);
-      if (err.name === 'AbortError') {
-        alert("Internet juda sekin. Qayta urinib ko'ring.");
-      } else {
-        alert("Tarmoq xatosi. Internet aloqasini tekshiring.");
-      }
+      alert("Tarmoq xatosi. Internetni tekshiring.");
       submitBtn.disabled = false;
       submitBtn.textContent = "Tasdiqlash va Saqlash";
     });
