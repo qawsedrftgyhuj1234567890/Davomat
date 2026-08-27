@@ -10,7 +10,6 @@
   <meta name="apple-mobile-web-app-title" content="Boyovut 1-son Texnikum">
   <meta name="theme-color" content="#2563eb">
   
-  <!-- Иконки и логотип приложения -->
   <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/ai/AC-5b-ws8CgNdrU_8I3Uo2LlhR7ZcQ3FfKskN7V9XF4h1G8Dvh8_d4N5e2lY3Z0=s1600">
   <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/ai/AC-5b-ws8CgNdrU_8I3Uo2LlhR7ZcQ3FfKskN7V9XF4h1G8Dvh8_d4N5e2lY3Z0=s1600">
   <link rel="manifest" href="manifest.json">
@@ -35,14 +34,13 @@
     button:disabled { background: #9ca3af; cursor: not-allowed; }
     .status-badge { font-size: 13px; padding: 8px; border-radius: 4px; background: #e5e7eb; text-align: center; margin-top: 5px; font-weight: bold; }
     
-    /* Стили для кнопки установки приложения */
-    .pwa-btn { background: #ff9800; color: white; display: none; margin-bottom: 15px; }
+    /* Кнопка видна всегда */
+    .pwa-btn { background: #ff9800; color: white; display: block; margin-bottom: 15px; }
   </style>
 </head>
 <body>
 
 <div class="app">
-  <!-- Кнопка установки приложения -->
   <button type="button" class="pwa-btn" id="install-pwa-btn" onclick="triggerPWAInstall()">📲 Ilovani telefonga o'rnatish</button>
 
   <h1>Boyovut tuman 1-son professional texnikumi</h1>
@@ -94,15 +92,11 @@
 </div>
 
 <script>
-  /* --- ИЗМЕНЕННЫЙ БЛОК УСТАНОВКИ ПРИЛОЖЕНИЯ (PWA) --- */
   let deferredPrompt;
-  const installBtn = document.getElementById('install-pwa-btn');
 
-  // Отслеживаем событие возможности установки от браузера
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    installBtn.style.display = 'block'; // Показываем кнопку только когда установка возможна
   });
 
   function triggerPWAInstall() {
@@ -110,22 +104,14 @@
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
-          installBtn.style.display = 'none';
+          document.getElementById('install-pwa-btn').style.display = 'none';
         }
         deferredPrompt = null;
       });
     } else {
-      // Подсказка, если событие не вызвано вручную или браузер iOS Safari
-      alert("Ilovani o'rnatish uchun браузер менюсидан (⋮) 'Bosh ekranga qo'shish' (Добавить на главный экран) tugmasini bosing.");
+      alert("Ilovani o'rnatish uchun:\n\n1. Oyna tepasidagi (⋮) uch nuqtani bosing.\n2. 'Bosh ekranga qo'shish' (Добавить на главный экран / Install app) tugmasini tanlang.");
     }
   }
-
-  // Если приложение уже установлено на телефон — скрываем кнопку
-  window.addEventListener('appinstalled', () => {
-    installBtn.style.display = 'none';
-    deferredPrompt = null;
-  });
-  /* --- КОНЕЦ БЛОКА УСТАНОВКИ --- */
 
   const employeesByDept = {
     "Ma'muriyat": ["Rayimov.A", "Shodiyev.D", "Usmonov.R", "Hamroqulov.Sh", "Razzoqberdiyev.Q", "Boltayev.K", "Berdinazarova.D", "Mamanazarov.R", "Mamatqulova.Yu", "Mavlonov.Yu", "Ollonazarov.U", "Keldibekov.F", "Xolmuhammedov.A", "Usmonova.N", "Xo`janov.N", "Xolboyeva.Sh", "Xolboyeva.F", "Sharipov.O", "Latipov.A"],
