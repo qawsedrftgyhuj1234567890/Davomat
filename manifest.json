@@ -9,14 +9,12 @@
     {
       "src": "https://lh3.googleusercontent.com/ai/AC-5b-ws8CgNdrU_8I3Uo2LlhR7ZcQ3FfKskN7V9XF4h1G8Dvh8_d4N5e2lY3Z0=s1600",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "https://lh3.googleusercontent.com/ai/AC-5b-ws8CgNdrU_8I3Uo2LlhR7ZcQ3FfKskN7V9XF4h1G8Dvh8_d4N5e2lY3Z0=s1600",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
