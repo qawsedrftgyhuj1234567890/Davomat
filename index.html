@@ -18,7 +18,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
     body { padding: 20px; display: flex; justify-content: center; }
     .app { background: #ffffff; padding: 24px; border-radius: 12px; max-width: 500px; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    h1 { font-size: 20px; margin-bottom: 20px; text-align: center; color: #2563eb; font-weight: bold; }
+    h1 { font-size: 20px; margin-bottom: 20px; text-align: center; color: #2563eb; }
     .form-group { margin-bottom: 16px; }
     label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 6px; }
     input, select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; }
@@ -109,7 +109,7 @@
 
   const employeesByDept = {
     "Ma'muriyat": ["Rayimov.A", "Shodiyev.D", "Usmonov.R", "Hamroqulov.Sh", "Razzoqberdiyev.Q", "Boltayev.K", "Berdinazarova.D", "Mamanazarov.R", "Mamatqulova.Yu", "Mavlonov.Yu", "Ollonazarov.U", "Keldibekov.F", "Xolmuhammedov.A", "Usmonova.N", "Xo`janov.N", "Xolboyeva.Sh", "Xolboyeva.F", "Sharipov.O", "Latipov.A"],
-    "O'qituvchilar": ["Abdujalilov.A", "Abdurahmonova.A", "Abdurahmonova.S", "Abdurazzoqov.E", "Abdusalomova.O", "Allayorova.M", "Bahriddinov.K", "Hamidova.M", "Igamberdiyev.A", "Jalilova.N", "Jumaboyeva.R", "Karimov.A", "Ko`chmurodov.M", "Latipova.O", "Mirzayeva.Sh", "Muhammadqulov.J", "Normamatov.L", "Qoraboyeva.Sh", "Rahimov.J", "Sangilov.S", "Sheraliyev.Sh", "Soyupov.F", "Xamidov.S", "Xaydarova.D", "Yo`ldoshev.J"],
+    "O'qituvchilar": ["Abdujalilov.A", "Abdurahmonova.A", "Abdurahmonova.S", "Abdurazzoqov.E", "Abdusalomova.O", "Allayorova.M", "Bahriddinov.K", "Hamidova.M", "Igamberdiyev.A", "Jalilova.N",  "Karimov.A", "Ko`chmurodov.M", "Latipova.O", "Mirzayeva.Sh", "Muhammadqulov.J", "Normamatov.L", "Qoraboyeva.Sh", "Rahimov.J", "Sangilov.S", "Sheraliyev.Sh", "Soyupov.F", "Xamidov.S", "Xaydarova.D", "Yo`ldoshev.J"],
     "ICHTU": ["Abdujalilov.A", "Berdaliyev.B", "Bobomurodov.O", "G`aybullayev.A", "Mamanazarov.A", "Mamanazarov.Sh", "Murodov.A", "Nasriddinov.A", "O`razaliyev.A", "Odilov.S", "Rayimjonov.A", "Shukurov.A", "To`ychiboyev.B", "Tojiboyev.R", "Turdiqulov.U"],
     "Tex Xodimlar": ["Aliberdiyev.Sh", "Alimatov.R", "Boymatova.Z", "Ermatova.N", "Haydarov.Sh", "Jabborov.B", "Jumaboyev.A", "Jo`rayeva.M", "Komilova.A", "Mirzaqobilova.N", "Mubinova.G", "Ma`mirboyeva.N", "Nurmatov.G`", "Nurmatova.M", "Kattabekova.Q", "Sharipova.G", "Zohidova.N"]
   };
@@ -153,65 +153,30 @@
   function openCamera() { document.getElementById('camera-file').click(); }
 
   function handlePhoto(input) {
-  if (input.files && input.files[0]) {
-    const file = input.files[0];
-    const reader = new FileReader();
-
-    reader.onload = function(e) {
-      const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const MAX_SIZE = 800; // Оптимальный размер для быстрого 4G
-
-        if (width > height) {
-          if (width > MAX_SIZE) {
-            height *= MAX_SIZE / width;
-            width = MAX_SIZE;
-          }
-        } else {
-          if (height > MAX_SIZE) {
-            width *= MAX_SIZE / height;
-            height = MAX_SIZE;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob((blob) => {
-          rawFileBlob = blob;
-          document.getElementById('preview').src = canvas.toDataURL('image/jpeg', 0.6);
-          document.getElementById('preview').style.display = 'block';
-          document.getElementById('photo-placeholder').style.display = 'none';
-          faceVerified = true;
-          document.getElementById('face-status').textContent = "🟢 Rasm yuklandi!";
-          document.getElementById('face-status').style.background = "#dcfce7";
-          updateSubmitButton();
-        }, 'image/jpeg', 0.6);
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+    if (input.files && input.files[0]) {
+      rawFileBlob = input.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('preview').src = e.target.result;
+        document.getElementById('preview').style.display = 'block';
+        document.getElementById('photo-placeholder').style.display = 'none';
+        faceVerified = true;
+        document.getElementById('face-status').textContent = "🟢 Rasm yuklandi!";
+        document.getElementById('face-status').style.background = "#dcfce7";
+        updateSubmitButton();
+      }
+      reader.readAsDataURL(input.files[0]);
+    }
   }
-}
-  
+
   function verifyGPS() {
-  document.getElementById('geo-status').textContent = "Aniqlanmoqda...";
-  if (!navigator.geolocation) {
-    coordsText = "40.283004,69.033354";
-    geoVerified = true;
-    document.getElementById('geo-status').textContent = "🟢 GPS OK (Standard)";
-    document.getElementById('geo-status').style.background = "#dcfce7";
-    updateSubmitButton();
-    return;
-  }
+    document.getElementById('geo-status').textContent = "Aniqlanmoqda...";
+    if (!navigator.geolocation) { 
+      alert("Sizning qurilmangizda GPS qo'llab-quvvatlanmaydi."); 
+      return; 
+    }
 
-  navigator.geolocation.getCurrentPosition(
-    pos => {
+    navigator.geolocation.getCurrentPosition(pos => {
       const dist = getDistanceMeters(pos.coords.latitude, pos.coords.longitude, TECH_LAT, TECH_LON);
       if (dist <= MAX_DISTANCE_METERS) {
         coordsText = `${pos.coords.latitude},${pos.coords.longitude}`;
@@ -219,24 +184,20 @@
         document.getElementById('geo-status').textContent = `🟢 Hududdasiz (${Math.round(dist)}m)`;
         document.getElementById('geo-status').style.background = "#dcfce7";
       } else {
-        // Фоллбек для слабых телефонов, некорректно определяющих спутники
-        coordsText = `${pos.coords.latitude},${pos.coords.longitude}`;
-        geoVerified = true;
-        document.getElementById('geo-status').textContent = `🟢 GPS Muvaffaqiyatli`;
-        document.getElementById('geo-status').style.background = "#dcfce7";
+        geoVerified = false;
+        alert(`Siz tashqaridasiz! Masofa: ${Math.round(dist)}m`);
+        document.getElementById('geo-status').textContent = `🔴 Tashqaridasiz (${Math.round(dist)}m)`;
+        document.getElementById('geo-status').style.background = "#fee2e2";
       }
       updateSubmitButton();
-    },
-    err => {
-      coordsText = "40.283004,69.033354";
+    }, (err) => {
+      coordsText = "40.283004,69.033354"; 
       geoVerified = true;
-      document.getElementById('geo-status').textContent = "🟢 GPS OK (Avto)";
+      document.getElementById('geo-status').textContent = "🟢 GPS OK (Резерв)";
       document.getElementById('geo-status').style.background = "#dcfce7";
       updateSubmitButton();
-    },
-    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
-  );
-}
+    }, { enableHighAccuracy: true, timeout: 10000 });
+  }
 
   function updateSubmitButton() {
     const name = document.getElementById('emp-name').value;
@@ -245,56 +206,55 @@
   }
 
   function sendDataToTelegram() {
-  const submitBtn = document.getElementById('btn-submit');
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Yuborilmoqda...";
+    const submitBtn = document.getElementById('btn-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Yuborilmoqda...";
 
-  const BOT_TOKEN = "8683724093:AAGM5CF0sjJn21wAp2mbzJPM4GUuwx0RrRE";
-  const CHAT_ID = "-1004469348647";
+    const BOT_TOKEN = "8683724093:AAGM5CF0sjJn21wAp2mbzJPM4GUuwx0RrRE";
+    const CHAT_ID = "-1004469348647";
 
-  const name = document.getElementById('emp-name').value;
-  const dept = document.getElementById('emp-dept').value;
-  const status = document.querySelector('input[name="status"]:checked').value;
-  
-  const messageText = `📊 *YANGI DAVOMAT HISOBOTI*\n\n` +
-                      `👤 *Xodim:* ${name}\n` +
-                      `📂 *Bo'lim:* ${dept}\n` +
-                      `🔄 *Harakat:* ${status}\n` +
-                      `📍 *Lokatsiya:* [Google Maps](https://maps.google.com/?q=${coordsText})\n` +
-                      `🕒 *Vaqt:* ${new Date().toLocaleString('uz-UZ', {timeZone: 'Asia/Tashkent'})}`;
+    const name = document.getElementById('emp-name').value;
+    const dept = document.getElementById('emp-dept').value;
+    const status = document.querySelector('input[name="status"]:checked').value;
+    
+    const messageText = `📊 *YANGI DAVOMAT HISOBOTI*\n\n` +
+                        `👤 *Xodim:* ${name}\n` +
+                        `📂 *Bo'lim:* ${dept}\n` +
+                        `🔄 *Harakat:* ${status}\n` +
+                        `📍 *Lokatsiya:* [Google Maps](https://maps.google.com/?q=${coordsText})\n` +
+                        `🕒 *Vaqt:* ${new Date().toLocaleString('uz-UZ', {timeZone: 'Asia/Tashkent'})}`;
 
-  const formData = new FormData();
-  formData.append("chat_id", CHAT_ID);
-  formData.append("caption", messageText);
-  formData.append("parse_mode", "Markdown");
+    const formData = new FormData();
+    formData.append("chat_id", CHAT_ID);
+    formData.append("caption", messageText);
+    formData.append("parse_mode", "Markdown");
 
-  let apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
+    let apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
 
-  if (rawFileBlob) {
-    formData.append("photo", rawFileBlob, "face.jpg");
-  } else {
-    apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-    formData.append("text", messageText);
-  }
-
-  fetch(apiUrl, { method: "POST", body: formData })
-  .then(res => res.json())
-  .then(data => {
-    if (data.ok) {
-      alert("Ma'lumot Telegram botga muvaffaqiyatli yuborildi!");
-      location.reload();
+    if (rawFileBlob) {
+      formData.append("photo", rawFileBlob, "face.jpg");
+      apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
     } else {
-      alert("Xatolik: " + (data.description || "Qayta urinib ko'ring"));
+      formData.append("text", messageText);
+    }
+
+    fetch(apiUrl, { method: "POST", body: formData })
+    .then(res => {
+      if (res.ok) {
+        alert("Ma'lumot Telegram botga muvaffaqiyatli yuborildi!");
+        location.reload();
+      } else {
+        alert("Xatolik yuz berdi. Qayta urinib ko'ring.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Tasdiqlash va Saqlash";
+      }
+    })
+    .catch(err => {
+      alert("Tarmoq xatosi. Internetni tekshiring.");
       submitBtn.disabled = false;
       submitBtn.textContent = "Tasdiqlash va Saqlash";
-    }
-  })
-  .catch(err => {
-    alert("Tarmoq xatosi. Internetni tekshiring.");
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Tasdiqlash va Saqlash";
-  });
-}
+    });
+  }
 </script>
 </body>
 </html>
