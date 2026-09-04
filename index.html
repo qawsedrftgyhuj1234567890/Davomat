@@ -245,54 +245,56 @@
   }
 
   function sendDataToTelegram() {
-    document.getElementById('btn-submit').disabled = true;
-    document.getElementById('btn-submit').textContent = "Yuborilmoqda...";
+  const submitBtn = document.getElementById('btn-submit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Yuborilmoqda...";
 
-    // НАСТРОЙКИ ВАШЕГО ТЕЛЕГРАМ-БОТА
-    const BOT_TOKEN = "8683724093:AAGM5CF0sjJn21wAp2mbzJPM4GUuwx0RrRE";
-    const CHAT_ID = "-1004469348647";
+  const BOT_TOKEN = "8683724093:AAGM5CF0sjJn21wAp2mbzJPM4GUuwx0RrRE";
+  const CHAT_ID = "-1004469348647";
 
-    const name = document.getElementById('emp-name').value;
-    const dept = document.getElementById('emp-dept').value;
-    const status = document.querySelector('input[name="status"]:checked').value;
-    
-    const messageText = `📊 *YANGI DAVOMAT HISOBOTI*\n\n` +
-                        `👤 *Xodim:* ${name}\n` +
-                        `📂 *Bo'lim:* ${dept}\n` +
-                        `🔄 *Harakat:* ${status}\n` +
-                        `📍 *Lokatsiya:* [Google Maps](https://maps.google.com/?q=${coordsText})\n` +
-                        `🕒 *Vaqt:* ${new Date().toLocaleString('uz-UZ', {timeZone: 'Asia/Tashkent'})}`;
+  const name = document.getElementById('emp-name').value;
+  const dept = document.getElementById('emp-dept').value;
+  const status = document.querySelector('input[name="status"]:checked').value;
+  
+  const messageText = `📊 *YANGI DAVOMAT HISOBOTI*\n\n` +
+                      `👤 *Xodim:* ${name}\n` +
+                      `📂 *Bo'lim:* ${dept}\n` +
+                      `🔄 *Harakat:* ${status}\n` +
+                      `📍 *Lokatsiya:* [Google Maps](https://maps.google.com/?q=${coordsText})\n` +
+                      `🕒 *Vaqt:* ${new Date().toLocaleString('uz-UZ', {timeZone: 'Asia/Tashkent'})}`;
 
-    const formData = new FormData();
-    formData.append("chat_id", CHAT_ID);
-    formData.append("caption", messageText);
-    formData.append("parse_mode", "Markdown");
+  const formData = new FormData();
+  formData.append("chat_id", CHAT_ID);
+  formData.append("caption", messageText);
+  formData.append("parse_mode", "Markdown");
 
-    let apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+  let apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
 
-    if (rawFileBlob) {
-      formData.append("photo", rawFileBlob, "face.jpg");
-      apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
-    } else {
-      formData.append("text", messageText);
-    }
-
-    fetch(apiUrl, { method: "POST", body: formData })
-    .then(res => {
-      if (res.ok) {
-        alert("Ma'lumot Telegram botga muvaffaqiyatli yuborildi!");
-        location.reload();
-      } else {
-        alert("Xatolik yuz berdi. Ботни группага администратор қилганингизни текширинг.");
-        document.getElementById('btn-submit').disabled = false;
-        document.getElementById('btn-submit').textContent = "Tasdiqlash va Saqlash";
-      }
-    })
-    .catch(() => {
-      alert("Tarmoq xatosi. Qayta urinib ko'ring.");
-      document.getElementById('btn-submit').disabled = false;
-    });
+  if (rawFileBlob) {
+    formData.append("photo", rawFileBlob, "face.jpg");
+  } else {
+    apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+    formData.append("text", messageText);
   }
+
+  fetch(apiUrl, { method: "POST", body: formData })
+  .then(res => res.json())
+  .then(data => {
+    if (data.ok) {
+      alert("Ma'lumot Telegram botga muvaffaqiyatli yuborildi!");
+      location.reload();
+    } else {
+      alert("Xatolik: " + (data.description || "Qayta urinib ko'ring"));
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Tasdiqlash va Saqlash";
+    }
+  })
+  .catch(err => {
+    alert("Tarmoq xatosi. Internetni tekshiring.");
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Tasdiqlash va Saqlash";
+  });
+}
 </script>
 </body>
 </html>
