@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Boyovut tuman 1-son Texnikum</title>
+  
+  <!-- Manifest ulanishi -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
+
   <style>
     :root { background: #f3f4f6; color: #1f2937; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
@@ -13,16 +18,16 @@
     
     .install-btn {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       background: #8b5cf6;
       color: #fff;
       border: none;
       border-radius: 6px;
       font-weight: bold;
-      font-size: 14px;
+      font-size: 15px;
       margin-bottom: 18px;
       cursor: pointer;
-      display: none;
+      display: none; /* Odatiy holda yashirin */
     }
 
     .form-group { margin-bottom: 16px; }
@@ -106,30 +111,56 @@
   let coordsText = ""; 
   let rawFileBlob = null;
   let deferredPrompt = null;
-  
+
   const TECH_LAT = 40.283004;
   const TECH_LON = 69.033354;
   const MAX_DISTANCE_METERS = 150;
 
-  // PWA Install prompt handler
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    document.getElementById('btn-install').style.display = 'block';
-  });
+  // --- ILOVA O'RNATISH TUGMASI LOGIKASI ---
+  const installBtn = document.getElementById('btn-install');
+
+  // Tekshiruv: agar ilova allaqachon o'rnatilgan bo'lsa yoki PWA rejimida ochilgan bo'lsa
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const isInstalledInStorage = localStorage.getItem('appInstalled') === 'true';
+
+  if (!isStandalone && !isInstalledInStorage) {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'block';
+    });
+  }
 
   function installPWA() {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
-          document.getElementById('btn-install').style.display = 'none';
+          localStorage.setItem('appInstalled', 'true');
+          installBtn.style.display = 'none';
         }
         deferredPrompt = null;
       });
+    } else {
+      const isAndroid = /Android/i.test(navigator.userAgent);
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+      if (isAndroid) {
+        alert("Ilovani o'rnatish uchun:\n1. Brauzerning yuqori burchagidagi 3 ta nuqtani (⋮) bosing.\n2. 'Ekran bo'limiga qo'shish' (Добавить на гл. экран) bosing.");
+      } else if (isIOS) {
+        alert("Ilovani o'rnatish uchun:\n1. Pastdagi 'Ulashish' (Share ⎋) tugmasini bosing.\n2. 'Ekran bo'limiga qo'shish' (Add to Home Screen) bosing.");
+      }
+      localStorage.setItem('appInstalled', 'true');
+      installBtn.style.display = 'none';
     }
   }
 
+  window.addEventListener('appinstalled', () => {
+    localStorage.setItem('appInstalled', 'true');
+    installBtn.style.display = 'none';
+  });
+
+  // --- ASOSIY FUNKSIYALAR ---
   function getDistanceMeters(lat1, lon1, lat2, lon2) {
     const R = 6371e3;
     const phi1 = lat1 * Math.PI / 180;
@@ -250,7 +281,7 @@
       },
       err => {
         geoVerified = false;
-        statusEl.textContent = "❌ GPS geolokatsiyani aniqlab bo'lmadi! GPS va Internetni yoqing.";
+        statusEl.textContent = "❌ GPS aniqlanmadi! GPS va Internetni yoqing.";
         statusEl.className = "status-badge error";
         updateSubmitButton();
       },
